@@ -211,7 +211,8 @@ requires=[
 extra_requires = {
     'currennt': ['netCDF4'],
     'watcher': ['watchdog'],
-    'opencl': ['pyopencl']
+    'opencl': ['pyopencl'],
+    'gui': ['gooey']
 }
 
 
@@ -259,6 +260,7 @@ setup(
     entry_points={
         'console_scripts': [
             'nanonetcall = nanonet.nanonetcall:main',
+            'nanonetgui = nanonet.nanonetgui:main',
             'nanonet2d = nanonet.nanonetcall_2d:main',
             'nanonettrain = nanonet.nanonettrain:main'
         ]

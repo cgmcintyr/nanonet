@@ -471,10 +471,18 @@ def process_read_opencl(modelfile, pa, fast5_list, min_prob=1e-5, trans=None, wr
     return ret
 
 
-def main():
+def main(myargs=None):
     if len(sys.argv) == 1:
         sys.argv.append("-h")
-    args = get_parser().parse_args()
+    parser = get_parser()
+    gui = False
+    if myargs is None:
+        args = parser.parse_args()
+    else:
+	gui = True
+        args = parser.parse_args([])
+	for k, v in vars(myargs).items():
+            setattr(args, k, v)
  
     if args.list_platforms:
         list_opencl_platforms() 
@@ -561,6 +569,7 @@ def main():
             n_bases += len(basecall)
             n_events += n_ev
             timings = [x + y for x, y in zip(timings, time)]
+
     t1 = now()
     sys.stderr.write('Basecalled {} reads ({} bases, {} events) in {}s (wall time)\n'.format(n_reads, n_bases, n_events, t1 - t0))
     if n_reads > 0:
