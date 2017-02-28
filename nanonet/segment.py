@@ -1,3 +1,4 @@
+from builtins import range
 import collections
 import numpy as np
 
@@ -376,7 +377,7 @@ def _find_abasic_candidates(events, mean_threshold, min_peak_dur, leader_peak_he
     candidates = collections.deque()
     if max_events_to_search is None:
         max_events_to_search = means.size
-    for i in xrange(means.size):
+    for i in range(means.size):
         if in_peak:
             if means[i] > mean_threshold:
                 count += 1

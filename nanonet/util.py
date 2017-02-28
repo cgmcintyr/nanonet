@@ -1,7 +1,12 @@
+from builtins import next
+from builtins import map
+from builtins import zip
+from builtins import range
+from builtins import object
 import sys
 import os
 import time
-from itertools import tee, imap, izip, izip_longest, product, cycle, islice, chain
+from itertools import tee, zip_longest, product, cycle, islice, chain
 from functools import partial
 import traceback
 from multiprocessing import Pool
@@ -16,6 +21,7 @@ import pkg_resources
 
 import numpy as np
 from numpy.lib import recfunctions as nprf
+from functools import reduce
 
 __eta__ = 1e-100
 
@@ -66,11 +72,11 @@ def all_kmers(alphabet='ACGT', length=5, rev_map=False):
         is specified a second item is returned as noted above.
 
     """
-    fwd_map = map(lambda x: ''.join(x), product(alphabet, repeat=length))
+    fwd_map = [''.join(x) for x in product(alphabet, repeat=length)]
     if not rev_map:
         return fwd_map
     else:
-        return fwd_map, dict(zip(fwd_map, xrange(len(fwd_map))))
+        return fwd_map, dict(list(zip(fwd_map, range(len(fwd_map)))))
 
 
 def all_nmers(n=3, alpha='ACGT'):
@@ -92,7 +98,7 @@ def com(k):
 
 def rc_kmer(seq):
     """ Return reverse complement of a string (base) sequence. """
-    return reduce(lambda x,y: x+y, map(com, seq[::-1]))
+    return reduce(lambda x,y: x+y, list(map(com, seq[::-1])))
 
 
 def kmers_to_annotated_sequence(kmers):
@@ -152,7 +158,7 @@ def kmer_overlap_gen(kmers, moves=None):
         if first:
             if moves is None:
                 l = len(this_kmer)
-                moves = range(l + 1)
+                moves = list(range(l + 1))
             first = False
 
         l = len(this_kmer)
@@ -183,7 +189,7 @@ def kmers_to_call(kmers, moves):
 
     # We use izip longest to check that iterables are same length
     bases = None
-    for kmer, move in izip_longest(kmers, moves, fillvalue=None):
+    for kmer, move in zip_longest(kmers, moves, fillvalue=None):
         if kmer is None or move is None:
             raise RuntimeError('Lengths of kmers and moves must be equal (kmers={} and moves={}.'.format(len(kmers), len(moves)))
         if move < 0 and not math.isnan(x):
@@ -232,10 +238,10 @@ def window(iterable, size):
     """
 
     iters = tee(iterable, size)
-    for i in xrange(1, size):
+    for i in range(1, size):
         for each in iters[i:]:
             next(each, None)
-    return izip(*iters)
+    return zip(*iters)
 
 
 def group_by_list(iterable, group_sizes):
@@ -243,7 +249,7 @@ def group_by_list(iterable, group_sizes):
     sizes = cycle(group_sizes)
     it = iter(iterable)
     while True:
-        chunk_it = islice(it, sizes.next())
+        chunk_it = islice(it, next(sizes))
         try:
             first_el = next(chunk_it)
         except StopIteration:
@@ -302,9 +308,9 @@ class FastaWrite(object):
 
     def __enter__(self):
         if self.filename is not None and self.filename != '-':
-            self.fh = open(self.filename, 'w', 0)
+            self.fh = open(self.filename, 'w')
         else:
-            self.fh = os.fdopen(sys.stdout.fileno(), 'w', 0)
+            self.fh = os.fdopen(sys.stdout.fileno(), 'w')
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -318,7 +324,7 @@ class FastaWrite(object):
 
         #TODO: handle meta
         self.fh.write(">{}\n".format(name))
-        for chunk in (seq[i:i+line_length] for i in xrange(0, len(seq), line_length)):
+        for chunk in (seq[i:i+line_length] for i in range(0, len(seq), line_length)):
             self.fh.write('{}\n'.format(chunk))
         self.fh.flush()
 
@@ -452,7 +458,7 @@ def tang_imap(
         my_function = partial(except_functor, my_function)
 
     if threads == 1:
-        for r in imap(my_function, args):
+        for r in map(my_function, args):
             yield r
     else:
         pool = Pool(threads)

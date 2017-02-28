@@ -11,6 +11,10 @@ indicating that the 1st event of the first sequence aligns to the 1st
 in the second, -1 indicating the corresponding event in the other
 sequences does not have a partner.
 """
+from __future__ import division
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import logging
 
 import os
@@ -137,7 +141,7 @@ def apply_em_weights(post, weights):
     num_states = post.shape[1]
     num_events = post.shape[0]
     for i in range(num_events):
-        offset = (1.0 - weights[i]) / num_states
+        offset = old_div((1.0 - weights[i]), num_states)
         post[i,:] *= weights[i]
         post[i,:] += offset
     return
@@ -170,10 +174,10 @@ class Chunker(object):
                 self.trimmed_alignment[i]['pos1'] -= self.complement_start
         
         # Set chunk end points.
-        num_chunks = int(ceil(float(self.trimmed_alignment.size) / float(self.chunk_size)))
+        num_chunks = int(ceil(old_div(float(self.trimmed_alignment.size), float(self.chunk_size))))
         if num_chunks == 0:
             num_chunks = 1
-        points = np.linspace(self.trimmed_alignment.size / num_chunks, self.trimmed_alignment.size,
+        points = np.linspace(old_div(self.trimmed_alignment.size, num_chunks), self.trimmed_alignment.size,
                          num=num_chunks, endpoint=True)
         chunk_ends = [int(floor(point)) for point in points]
         chunk_ends[-1] = self.trimmed_alignment.size - 1
@@ -213,13 +217,13 @@ class Chunker(object):
         deltay = ypos
         maxdelta = max(deltax, deltay)
         interpolate = np.zeros(maxdelta + 1, dtype=self.chunk_alignments[n].dtype)
-        for i in xrange(maxdelta + 1):
+        for i in range(maxdelta + 1):
             if deltax > deltay:
                 xval = xpos + i
-                yval = ypos - int(round(float(deltay * i) / maxdelta))
+                yval = ypos - int(round(old_div(float(deltay * i), maxdelta)))
             else:
                 yval = ypos - i
-                xval = xpos + int(round(float(deltax * i) / maxdelta))
+                xval = xpos + int(round(old_div(float(deltax * i), maxdelta)))
             interpolate[i]['pos0'] = xval - xpos
             interpolate[i]['pos1'] = yval + com_chunk_start - com_next_chunk_start
         new_chunk_alignment = np.zeros(self.chunk_alignments[n+1].size + interpolate.size, dtype=interpolate.dtype)
@@ -371,7 +375,7 @@ def call_aligned_pair(posts, transitions, alignment, allkmers, call_band=15,
 
         # Need to check for nonsense calls, indicated by mostly stays in the basecall.
         sequence = kmers_to_sequence(chunk_kmers)
-        if len(sequence) < len(align_in) / 3:
+        if len(sequence) < old_div(len(align_in), 3):
             logger.warning('Large number of stays detected in 2D basecall, aborting.')
             return None
 
@@ -396,7 +400,7 @@ def call_aligned_pair(posts, transitions, alignment, allkmers, call_band=15,
                     search = False
             if search:
                 pos -= 1
-        if pos < len(chunk_align_out) and pos < chunk_size / 2:
+        if pos < len(chunk_align_out) and pos < old_div(chunk_size, 2):
             # Chunking has failed. Return null object to indicate this.
             logger.warning('Failed to traceback through 2D basecall chunk, aborting.')
             return None
@@ -457,7 +461,7 @@ def make_aligned_qdata(post1, post2, alignment, kmers):
             post[pos,:] = temp
         else:
             prod = temp * comp
-            nrm = 1.0 / np.sum(prod)
+            nrm = old_div(1.0, np.sum(prod))
             post[pos,:] = prod * nrm
     qdata = get_qdata(post, kmers)
     return qdata

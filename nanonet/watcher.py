@@ -1,3 +1,4 @@
+from builtins import object
 import time
 from multiprocessing import Process, Queue
 

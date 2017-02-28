@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import zip
+from past.utils import old_div
 import os
 import numpy as np
 from numpy.ctypeslib import ndpointer
@@ -162,7 +165,7 @@ def _construct_events(sums, sumsqs, edges, sample_rate):
     """
     assert len(sums) == len(sumsqs), "sums and sumsqs must be the same length, got {} and  {}".format(len(sums), len(sumsqs))
     assert np.all(edges >= 0), "all edge indices must be positive"
-    assert np.all( map( lambda x: isinstance( x, int ), edges ) )
+    #assert np.all( [isinstance( x, int ) for x in edges] )
     # We could check maximal values here too, but we're going to get rid of them below.
     #    We put some faith in the caller to have read the DocString above.
 
@@ -185,9 +188,9 @@ def _construct_events(sums, sumsqs, edges, sample_rate):
         ev_sample_len = e - s
         events['length'][i] = ev_sample_len
 
-        ev_mean = float(sums[e-1] - sm) / ev_sample_len
+        ev_mean = old_div(float(sums[e-1] - sm), ev_sample_len)
         events['mean'][i] = ev_mean
-        variance = max(0.0, (sumsqs[e-1] - smsq) / ev_sample_len - (ev_mean**2))
+        variance = max(0.0, old_div((sumsqs[e-1] - smsq), ev_sample_len) - (ev_mean**2))
         events['stdv'][i] = np.sqrt(variance)
         s = e
         sm = sums[e-1]

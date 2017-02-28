@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import itertools
 import numpy as np
 import os
@@ -52,10 +55,10 @@ def decode_profile(post, trans=None, nbases=4, log=False, slip=0.0):
     trans_iter = trans.__iter__()
     for ev in range(1, len(post)):
         # Forward Viterbi iteration
-        ev_trans = trans_iter.next()
+        ev_trans = next(trans_iter)
         # Stay
         score = pscore + ev_trans[0]
-        iscore = range(nstate)
+        iscore = list(range(nstate))
         # Slip
         scoreNew = np.amax(pscore) + log_slip
         iscoreNew = np.argmax(pscore)
@@ -65,14 +68,14 @@ def decode_profile(post, trans=None, nbases=4, log=False, slip=0.0):
         pscore = pscore.reshape((nstep, -1))
         nrem = pscore.shape[1]
         scoreNew = np.repeat(np.amax(pscore, axis=0), nstep) + ev_trans[1]
-        iscoreNew = np.repeat(nrem * np.argmax(pscore, axis=0) + range(nrem), nstep)
+        iscoreNew = np.repeat(nrem * np.argmax(pscore, axis=0) + list(range(nrem)), nstep)
         iscore = np.where(score > scoreNew, iscore, iscoreNew)
         score = np.fmax(score, scoreNew)
         # Skip
         pscore = pscore.reshape((nskip, -1))
         nrem = pscore.shape[1]
         scoreNew = np.repeat(np.amax(pscore, axis=0), nskip) + ev_trans[2]
-        iscoreNew = np.repeat(nrem * np.argmax(pscore, axis=0) + range(nrem), nskip)
+        iscoreNew = np.repeat(nrem * np.argmax(pscore, axis=0) + list(range(nrem)), nskip)
         iscore = np.where(score > scoreNew, iscore, iscoreNew)
         score = np.fmax(score, scoreNew)
         # Store
@@ -100,10 +103,10 @@ def decode_profile_opencl(ctx, queue_list, post_list, trans_list=None, log=False
     iter = len(queue_list)
     
     if trans_list is None:
-        for x in xrange(iter):
+        for x in range(iter):
             trans_list.append(itertools.repeat(np.zeros(3)))
     else:
-        for x in xrange(iter):
+        for x in range(iter):
             trans = trans_list[x]
             trans = np.copy(trans)
             trans[:,1] -= _STEP_FACTOR
@@ -113,12 +116,12 @@ def decode_profile_opencl(ctx, queue_list, post_list, trans_list=None, log=False
     lpostList = []
     if fp_type == np.float32:
         slip = np.float32(slip)
-        for x in xrange(iter):
+        for x in range(iter):
             lpostList.append(post_list[x].copy().astype(np.float32))
             trans_list[x] = np.float32(trans_list[x])
     else:
         slip = np.float64(slip)
-        for x in xrange(iter):
+        for x in range(iter):
             lpostList.append(post_list[x].copy())
     
     cl_postList = []
@@ -127,7 +130,7 @@ def decode_profile_opencl(ctx, queue_list, post_list, trans_list=None, log=False
     cl_pscore_maxList = []
     state_seqList = []
     pscore_max = np.zeros(1, dtype=fp_type)
-    for x in xrange(iter):
+    for x in range(iter):
         cl_postList.append(cl.Buffer(ctx, cl.mem_flags.READ_WRITE | cl.mem_flags.USE_HOST_PTR, hostbuf=np.ravel(lpostList[x])))
         cl_transList.append(cl.Buffer(ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.USE_HOST_PTR, hostbuf=np.ravel(trans_list[x])))
         state_seqList.append(np.zeros(len(lpostList[x]), dtype=np.int32))
@@ -142,12 +145,12 @@ def decode_profile_opencl(ctx, queue_list, post_list, trans_list=None, log=False
         local_x, lpostList[0].shape[1]
     ))
 
-    for x in xrange(iter):
+    for x in range(iter):
         prg.decode(queue_list[x], (global_x, global_y), (local_x, local_y), np.int32(lpostList[x].shape[0]), slip, cl_postList[x], cl_transList[x], cl_state_seqList[x], cl_pscore_maxList[x])
         queue_list[x].flush()
     
     pscore_maxList = []
-    for x in xrange(iter):
+    for x in range(iter):
         cl.enqueue_copy(queue_list[x], pscore_max, cl_pscore_maxList[x])
         pscore_maxList.append(pscore_max[0])
         cl.enqueue_copy(queue_list[x], state_seqList[x], cl_state_seqList[x])
@@ -197,9 +200,9 @@ def estimate_transitions(post, trans=None):
     for ev in range(1, len(post)):
         stay = np.sum(post[ev-1] * post[ev])
         p = post[ev].reshape((-1, _NSTEP))
-        step = np.sum(post[ev-1] * np.tile(np.sum(p, axis=1), _NSTEP)) / _NSTEP
+        step = old_div(np.sum(post[ev-1] * np.tile(np.sum(p, axis=1), _NSTEP)), _NSTEP)
         p = post[ev].reshape((-1, _NSKIP))
-        skip = np.sum(post[ev-1] * np.tile(np.sum(p, axis=1), _NSKIP)) / _NSKIP
+        skip = old_div(np.sum(post[ev-1] * np.tile(np.sum(p, axis=1), _NSKIP)), _NSKIP)
         res[ev-1] = [stay, step, skip]
 
     if trans is None:

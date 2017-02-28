@@ -1,7 +1,12 @@
+from __future__ import division
+from __future__ import print_function
+from builtins import range
+from builtins import object
+from past.utils import old_div
 import os
 import random
 import string
-from itertools import izip
+
 import numpy as np 
 import numpy.lib.recfunctions as nprf
 
@@ -113,7 +118,7 @@ def chunker(array, chunk_size):
     :param array: list-like input
     :param chunk_size: output chunk size
     """
-    for i in xrange(0, len(array), chunk_size):
+    for i in range(0, len(array), chunk_size):
         yield array[i:i+chunk_size]
 
 
@@ -148,7 +153,7 @@ def get_labels_ont_mapping(filename, kmer_len=3, section='template'):
         if base_kmer_len == kmer_len:
             y = events['kmer']
         else:
-            k1 = base_kmer_len/2 - kmer_len/2 - 1
+            k1 = old_div(base_kmer_len,2) - old_div(kmer_len,2) - 1
             k2 = k1 + kmer_len
             y = np.fromiter(
                 (k[k1:k2] for k in events['kmer']),
@@ -212,7 +217,7 @@ def make_currennt_training_input_multi(fast5_files, netcdf_file, window=[-1, 0, 
                 X = events_to_features(get_events(f, **callback_kwargs), window=window)
                 labels = get_labels(f, **callback_kwargs)
             except:
-                print "Skipping: {}".format(f)
+                print("Skipping: {}".format(f))
                 continue
 
             try:   
@@ -221,7 +226,7 @@ def make_currennt_training_input_multi(fast5_files, netcdf_file, window=[-1, 0, 
                 if len(X) != len(labels):
                     raise RuntimeError('Length of features and labels not equal.')
             except:
-                print "Skipping: {}".format(f)
+                print("Skipping: {}".format(f))
 
             try:
                 # convert kmers to ints
@@ -236,8 +241,8 @@ def make_currennt_training_input_multi(fast5_files, netcdf_file, window=[-1, 0, 
                     'Check labels are no longer than {} and contain only {}'.format(f, kmer_len, alphabet)
                 )
             else:
-                print "Adding: {}".format(f)
-                for chunk, (X_chunk, y_chunk) in enumerate(izip(chunker(X, chunk_size), chunker(y, chunk_size))):
+                print("Adding: {}".format(f))
+                for chunk, (X_chunk, y_chunk) in enumerate(zip(chunker(X, chunk_size), chunker(y, chunk_size))):
                     if len(X_chunk) < min_chunk:
                         break
                     chunks_written += 1 #should be the same as curr_numSeqs below

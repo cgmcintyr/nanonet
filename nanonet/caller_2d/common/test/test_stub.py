@@ -1,10 +1,14 @@
 #!/usr/bin/python
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from past.utils import old_div
 import unittest
 import warnings
 import cProfile
 import pstats
 import time
-import StringIO
+import io
 import numpy as np
 from dragonet.basecall.common import stub
 
@@ -92,7 +96,7 @@ class TestStub(unittest.TestCase):
         pr.enable()
         result1 = self._loop_checker(data, 1000000, True)
         pr.disable()
-        s = StringIO.StringIO()
+        s = io.StringIO()
         ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
         #ps.print_stats()
         #print s.getvalue()
@@ -102,7 +106,7 @@ class TestStub(unittest.TestCase):
         pr.enable()
         result2 = self._loop_checker(data, 1000000, False)
         pr.disable()
-        s = StringIO.StringIO()
+        s = io.StringIO()
         ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
         #ps.print_stats()
         #print s.getvalue()
@@ -125,7 +129,7 @@ class TestStub(unittest.TestCase):
         #print 'Stats for positive range.'
         #print 'Time for normal exponential:', t2 - t1
         #print 'Time for fast exponential:', t3 - t2
-        error = np.abs((data2 - data1) / data1)
+        error = np.abs(old_div((data2 - data1), data1))
         max_idx = np.argmax(error)
         #print 'Max error:', error[max_idx], 'raw = ', raw[max_idx], 'data1 =', data1[max_idx], 'data2 =', data2[max_idx], 'diff =', data2[max_idx] - data1[max_idx]
         data3 = -1.0 * raw
@@ -138,7 +142,7 @@ class TestStub(unittest.TestCase):
         #print 'Stats for negative range.'
         #print 'Time for normal exponential:', t2 - t1
         #print 'Time for fast exponential:', t3 - t2
-        error = np.abs((data4 - data3) / data3)
+        error = np.abs(old_div((data4 - data3), data3))
         max_idx = np.argmax(error)
         #print 'Max error:', error[max_idx], 'raw =', raw[max_idx], 'data1 =', data3[max_idx], 'data2 =', data4[max_idx], 'diff =', data4[max_idx] - data3[max_idx]
         return

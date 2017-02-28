@@ -14,14 +14,35 @@
 typedef float ftype;
 using namespace std;
 
-
-static PyMethodDef DecodeMethods[] = {
+PyMethodDef module_functions[] = {
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
-PyMODINIT_FUNC initnanonetdecode(void) {
-    (void) Py_InitModule("nanonetdecode", DecodeMethods);
-}
+#if PY_MAJOR_VERSION >= 3
+  #define MOD_ERROR_VAL NULL
+  #define MOD_SUCCESS_VAL(val) val
+  #define MOD_INIT(name) PyMODINIT_FUNC PyInit_##name(void)
+  #define MOD_DEF(ob, name, doc, methods) \
+          static struct PyModuleDef moduledef = { \
+            PyModuleDef_HEAD_INIT, name, doc, -1, methods, }; \
+          ob = PyModule_Create(&moduledef);
+    MOD_INIT(nanonetdecode)
+    {
+        PyObject *m;
+
+        MOD_DEF(m, "nanonetdecode", "Event detection filters",
+                module_functions)
+
+        if (m == NULL)
+            return MOD_ERROR_VAL;
+        return MOD_SUCCESS_VAL(m);
+
+    }
+#else
+    PyMODINIT_FUNC initnanonetdecode(void) {
+        (void) Py_InitModule("nanonetdecode", module_functions);
+    }
+#endif
 
 
 extern "C" void viterbi_update(

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from builtins import str
+from builtins import zip
 import argparse
 import json
 import os
@@ -70,7 +72,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     parser.add_argument("--max_len", default=50000, type=int,
         help="Max. read length (events) to basecall.")
 
-    parser.add_argument("--chemistry", choices=__DEFAULTS__.keys(), default=None, action=SetChemistryDefaults,
+    parser.add_argument("--chemistry", choices=list(__DEFAULTS__.keys()), default=None, action=SetChemistryDefaults,
         help="Shorthand for selection various analysis parameters.")
     parser.add_argument("--template_model", type=str, action=FileExist,
         default=pkg_resources.resource_filename('nanonet', 'data/default_template.npy'),
@@ -137,7 +139,7 @@ def process_read_2d(modelfiles, fast5, min_prob=1e-5, trans=None, write_events=T
     })
     #TODO: see comments in the below function
     results = process_read_sections(fast5, modelfiles, jobs=2, **kwargs)
-    if any(v is None for v in results.values()):
+    if any(v is None for v in list(results.values())):
         results['2d'] = None
         logger.info('Skipping 2D because 1d bad for read {}.'.format(fast5))
     else:

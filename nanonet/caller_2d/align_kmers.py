@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import range
+from past.utils import old_div
 import numpy as np
 from math import log
 import pkg_resources
@@ -87,15 +90,15 @@ def align_3mer_sequences(sequence0, sequence1, substitution_matrix=sub_matrix, g
     """
     submat = [[int(val) for val in line] for line in substitution_matrix]
     pos_to_kmer, kmer_to_pos = all_kmers(length=3, rev_map=True)
-    seq0 = [kmer_to_pos[sequence0[i:i+3]] for i in xrange(len(sequence0) - 2)]
-    seq1 = [kmer_to_pos[sequence1[i:i+3]] for i in xrange(len(sequence1) - 2)]
+    seq0 = [kmer_to_pos[sequence0[i:i+3]] for i in range(len(sequence0) - 2)]
+    seq1 = [kmer_to_pos[sequence1[i:i+3]] for i in range(len(sequence1) - 2)]
     if reverse:
         seq1[:] = seq1[::-1]
     gaps = _gap_penalties_dict_to_list(gap_penalties)
     aligner = Aligner(submat, gaps, lowmem)
     alignment, score = aligner.align(seq0, seq1)
     if reverse:
-        for pos in xrange(len(alignment)):
+        for pos in range(len(alignment)):
             if alignment[pos][1] != -1:
                 alignment[pos] = (alignment[pos][0], len(seq1) - alignment[pos][1] - 1)
 
@@ -169,8 +172,8 @@ def align_basecalls(kmers0, kmers1, substitution_matrix=sub_matrix, gap_penaltie
     sequence1, index1 = kmers_to_annotated_sequence(kmers1)
     kmer_len = len(kmers0[0])
     trim = kmer_len - 3
-    trim_left = int((trim + 1) / 2)
-    trim_right = int(trim / 2)
+    trim_left = int(old_div((trim + 1), 2))
+    trim_right = int(old_div(trim, 2))
     sequence0 = sequence0[trim_left:(len(sequence0) - trim_right)]
     sequence1 = sequence1[trim_left:(len(sequence1) - trim_right)]
     alignment, score = align_3mer_sequences(sequence0, sequence1, substitution_matrix, gap_penalties, reverse=True)
@@ -187,7 +190,7 @@ def align_basecalls(kmers0, kmers1, substitution_matrix=sub_matrix, gap_penaltie
         return None, None
     # Build up a filled-in alignment by interpolating between aligned positions.
     new_alignment = [hits[0]]
-    for i in xrange(1, len(hits)):
+    for i in range(1, len(hits)):
         delta0 = hits[i][0] - hits[i-1][0]
         delta1 = hits[i-1][1] - hits[i][1]
         if delta0 > 1 and delta1 > 1:
@@ -196,8 +199,8 @@ def align_basecalls(kmers0, kmers1, substitution_matrix=sub_matrix, gap_penaltie
             n = max(delta0, delta1) - 1
             p0 = hits[i-1][0]
             p1 = hits[i-1][1]
-            step0 = float(delta0 - 1) / float(n)
-            step1 = float(delta1 - 1) / float(n)
+            step0 = old_div(float(delta0 - 1), float(n))
+            step1 = old_div(float(delta1 - 1), float(n))
             for k in range(n):
                 p0 += step0
                 p1 -= step1

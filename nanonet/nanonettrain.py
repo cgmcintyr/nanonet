@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from builtins import str
 import argparse
 import json
 import os
@@ -76,7 +78,7 @@ def get_parser():
 def prepare_input_file(in_out, **kwargs):
     path, in_list, output = in_out 
 
-    print "Creating training data NetCDF: {}".format(output)
+    print("Creating training data NetCDF: {}".format(output))
     fast5_files = list(iterate_fast5(path, paths=True, strand_list=in_list))
     return make_currennt_training_input_multi(
         fast5_files=fast5_files, 
@@ -180,7 +182,7 @@ def main():
         currennt_cfg.write(conf_line("autosave_best", "true"))
     
     # run currennt
-    print "\n\nRunning currennt with: {}".format(config_name)
+    print("\n\nRunning currennt with: {}".format(config_name))
     run_currennt_noisy(config_name, device=args.device)
 
     # Currennt won't pass through our meta in the model, amend the output
@@ -188,11 +190,11 @@ def main():
     best_network = "{}.best.jsn".format(best_network_prefix)
     best_network_numpy = "{}_best.npy".format(outputfile)
 
-    print "Adding model meta to currennt best network: {}".format(best_network)
+    print("Adding model meta to currennt best network: {}".format(best_network))
     mod = json.load(open(best_network, 'r'))
     mod['meta'] = mod_meta
     json.dump(mod, open(best_network, 'w'))
-    print "Transforming network to numpy pickle: {}".format(best_network_numpy)
+    print("Transforming network to numpy pickle: {}".format(best_network_numpy))
     mod = network_to_numpy(mod)
     np.save(best_network_numpy, mod)
         

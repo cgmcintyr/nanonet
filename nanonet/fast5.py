@@ -1,3 +1,6 @@
+from __future__ import division
+from builtins import zip
+from past.utils import old_div
 import os
 import sys
 from glob import glob
@@ -72,7 +75,7 @@ class Fast5(h5py.File):
         super(Fast5, self).__init__(fname, read)
 
         # Attach channel_meta as attributes, slightly redundant
-        for k, v in self[self.__channel_meta_path__].attrs.iteritems():
+        for k, v in self[self.__channel_meta_path__].attrs.items():
             setattr(self, k, v)
         # Backward compat.
         self.sample_rate = self.sampling_rate
@@ -93,7 +96,7 @@ class Fast5(h5py.File):
         req_fields = ['channel_number', 'offset', 'range', 'digitisation', 'sampling_rate']
         if not set(req_fields).issubset(set(channel_id.keys())):
             raise KeyError(
-                'channel_id does not contain required fields: {},\ngot {}.'.format(req_fields, channel_id.keys())
+                'channel_id does not contain required fields: {},\ngot {}.'.format(req_fields, list(channel_id.keys()))
             )
 
         # Start a new file, populate it with meta
@@ -127,7 +130,7 @@ class Fast5(h5py.File):
         if location not in self:
             self.create_group(location)
         attrs = self[location].attrs
-        for k, v in data.iteritems():
+        for k, v in data.items():
             if convert is not None:
                 attrs[k] = convert(v)
             else:
@@ -184,10 +187,10 @@ class Fast5(h5py.File):
 
     def summary(self, rename=True, delete=True, scale=True):
         """A read summary, assumes one read in file"""
-        to_rename = zip(
+        to_rename = list(zip(
             ('start_mux', 'abasic_found', 'duration', 'median_before'),
             ('mux', 'abasic', 'strand_duration', 'pore_before')
-        )
+        ))
         to_delete = ('read_number', 'scaling_used')
 
         data = deepcopy(self.attributes)
@@ -225,7 +228,7 @@ class Fast5(h5py.File):
 
         """
         analyses = self[self.__base_analysis__]
-        for name in analyses.keys():
+        for name in list(analyses.keys()):
             if name not in keep:
                 del analyses[name]
 
@@ -259,9 +262,9 @@ class Fast5(h5py.File):
                 raise KeyError('No raw data available in file {}.'.format(self.filename))
 
         if read_numbers is None:
-            it = reads.keys()
+            it = list(reads.keys())
         else:
-            it = (k for k in reads.keys()
+            it = (k for k in list(reads.keys())
                   if reads[k].attrs['read_number'] in read_numbers)
 
         if group == 'all':
@@ -284,9 +287,9 @@ class Fast5(h5py.File):
         :param group: return hdf group rather than event/raw data
         """
         if read_number is None:
-            return self.get_reads(group, raw).next()
+            return next(self.get_reads(group, raw))
         else:
-            return self.get_reads(group, raw, read_numbers=[read_number]).next() 
+            return next(self.get_reads(group, raw, read_numbers=[read_number])) 
 
 
     def _get_read_data(self, read, indices=None):
@@ -347,7 +350,7 @@ class Fast5(h5py.File):
         # Scale data to pA
         if scale:
             meta = self.channel_meta
-            raw_unit = meta['range'] / meta['digitisation']
+            raw_unit = old_div(meta['range'], meta['digitisation'])
             data = (data + meta['offset']) * raw_unit
         return data
 
@@ -362,10 +365,10 @@ class Fast5(h5py.File):
             'start_time', 'duration', 'read_number',
             'start_mux', 'read_id', 'scaling_used'
         ]
-        if not set(req_fields).issubset(meta.keys()):
+        if not set(req_fields).issubset(list(meta.keys())):
             raise KeyError(
                 'Read meta does not contain required fields: {}, got {}'.format(
-                    req_fields, meta.keys()
+                    req_fields, list(meta.keys())
                 )
             )
         req_fields = ['start', 'length', 'mean', 'stdv']
@@ -449,8 +452,8 @@ class Fast5(h5py.File):
         #   notes that prior to MinKNOW version 49.2 'read_id' was not present.
         #   Why do we have a specification?
         req_keys = ['start_time', 'duration', 'read_number', 'start_mux'] #'read_id'
-        meta = {k:v for k,v in meta.iteritems() if k in req_keys}
-        if len(meta.keys()) != len(req_keys):
+        meta = {k:v for k,v in meta.items() if k in req_keys}
+        if len(list(meta.keys())) != len(req_keys):
             raise KeyError(
                 'Raw meta data must contain keys: {}.'.format(req_keys)
             )
@@ -460,7 +463,7 @@ class Fast5(h5py.File):
         except:
             pass
         else:
-            if sum(meta[k] != event_meta[k] for k in meta.keys()) > 0:
+            if sum(meta[k] != event_meta[k] for k in list(meta.keys())) > 0:
                 raise ValueError(
                     "Attempted to set raw meta data as {} "
                     "but event meta is {}".format(meta, event_meta)
@@ -484,9 +487,7 @@ class Fast5(h5py.File):
         try:
             return self._join_path(
                 self.__base_analysis__,
-                sorted(filter(
-                    lambda x: name in x, self[self.__base_analysis__].keys()
-                ))[-1]
+                sorted([x for x in list(self[self.__base_analysis__].keys()) if name in x])[-1]
             )
         except (IndexError, KeyError):
             raise IndexError('No analyses with name {} present.'.format(name))

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from builtins import range
 import unittest
 
 import nanonet.nn as nn
@@ -6,7 +8,7 @@ import numpy as np
 class ANNTest(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        print '* ANN'
+        print('* ANN')
         np.random.seed(0xdeadbeef)
         self.prec = 6
         self._NSTEP = 10
@@ -99,7 +101,7 @@ class ANNTest(unittest.TestCase):
 
         res = network.run(self.x)
         res2 = np.zeros(self._SIZE, dtype=nn.dtype)
-        for i in xrange(self._NSTEP):
+        for i in range(self._NSTEP):
             res2 = res2.dot(W1) + self.b
             np.testing.assert_allclose(res[i], res2, self.prec)
 

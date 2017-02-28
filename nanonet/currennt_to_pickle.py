@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import division
+from past.utils import old_div
 import argparse
 import json
 import sys
@@ -67,7 +69,7 @@ def parse_layer_multiclass(size, weights):
 
 
 def parse_layer_blstm(size, weights):
-    size = size / 2
+    size = old_div(size, 2)
     wgts_input = toarray(weights['input']).reshape((4, 2, size, -1)).transpose((0, 1, 3, 2))
     wgts_bias = toarray(weights['bias']).reshape((4, 2, -1))
     wgts_internalMat = toarray(weights['internal'][: 4 * size * size * 2]).reshape((4, 2, size, size)).transpose((0, 1, 3, 2))
@@ -122,7 +124,7 @@ def network_to_numpy(in_network):
     for layer in in_network['layers']:
         wgts = in_network['weights'][layer['name']] if layer['name'] in in_network['weights'] else None
         layers.append(parse_layer(layer['type'], layer['size'], wgts))
-    layers = filter(lambda x: x is not None, layers)
+    layers = [x for x in layers if x is not None]
 
     meta = None
     if 'meta' in in_network:

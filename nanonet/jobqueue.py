@@ -1,8 +1,13 @@
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
 from uuid import uuid4
 from time import sleep
 import os
 from multiprocessing import Process
-import Queue
+import queue
 from functools import partial
 
 from myriad.components import MyriadServer
@@ -51,7 +56,7 @@ class JobQueue(object):
         self.authkey = str(uuid4())
 
         server = None
-        for port in xrange(*ports):
+        for port in range(*ports):
             try:
                 with stderr_redirected(os.devnull):
                     server = MyriadServer(None, port, self.authkey)
@@ -96,7 +101,7 @@ def _singleton_worker(function, job_q, job_q_closed, result_q, timeout=__timeout
             job = job_q.get_nowait()
             result = function(job)
             result_q.put(result)
-        except Queue.Empty:
+        except queue.Empty:
             if job_q_closed._getvalue().value:
                 break
         sleep(timeout)
@@ -106,10 +111,10 @@ def _multi_worker(function, take_n, job_q, job_q_closed, result_q, timeout=__tim
     while True:
         jobs = []
         try:
-            for _ in xrange(take_n):
+            for _ in range(take_n):
                 job = job_q.get_nowait()
                 jobs.append(job)
-        except Queue.Empty:
+        except queue.Empty:
             if job_q_closed._getvalue().value:
                 break
         else:
