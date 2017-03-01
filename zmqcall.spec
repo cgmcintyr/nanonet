@@ -1,23 +1,29 @@
 # -*- mode: python -*-
 import platform
-system = platform.system()
+from PyInstaller.utils.hooks import collect_dynamic_libs, collect_submodules
 
 block_cipher = None
+system = platform.system()
 binaries = [('nanonet*.so', '.')]
 datas = [('nanonet/data/*', 'nanonet/data')]
 hiddenimports = []
+excludedimports = []
 
 if system == 'Darwin':
     # there is a hook for this h5py but seems not to work (on OSX at least)
     hiddenimports += [
         'h5py.{}'.format(x) for x in ['_proxy', 'utils', 'defs', 'h5ac']
     ]
+    hiddenimports += ['zmq.utils.garbage'] + collect_submodules('zmq.backend')
+    binaries += collect_dynamic_libs('zmq')
+    excludedimports += ['zmq.libzmq']
 
-a = Analysis(['nanonet/nanonetcall.py'],
+a = Analysis(['nanonet/zmq_server.py'],
              pathex=['.'],
              binaries=binaries,
              datas=datas,
              hiddenimports=hiddenimports,
+             #excludedimports=excludedimports,
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -29,7 +35,7 @@ pyz = PYZ(a.pure, a.zipped_data,
 exe = EXE(pyz,
           a.scripts,
           exclude_binaries=True,
-          name='nanonetcall',
+          name='zmqcall',
           debug=False,
           strip=False,
           upx=True,
@@ -40,4 +46,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
-               name='nanonetcall')
+               name='zmqcall')

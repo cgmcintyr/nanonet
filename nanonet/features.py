@@ -87,7 +87,7 @@ def make_basecall_input_multi(fast5_files, section='template', window=[-1, 0, 1]
     library
     """
     for f in fast5_files:
-        with Fast5(f) as fh:
+        with Fast5(f, 'r') as fh:
             if event_detect:
                 # These parameters make no sense to me, but hey-ho
                 # TODO: expose to user

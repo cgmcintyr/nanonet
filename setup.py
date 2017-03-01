@@ -205,6 +205,7 @@ if opencl_2d:
 
 
 requires=[
+    'future',
     'h5py',
     'myriad >=0.1.2',
     'numpy',
