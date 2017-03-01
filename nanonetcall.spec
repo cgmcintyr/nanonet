@@ -12,6 +12,11 @@ if system == 'Darwin':
     hiddenimports += [
         'h5py.{}'.format(x) for x in ['_proxy', 'utils', 'defs', 'h5ac']
     ]
+elif system == 'Windows':
+    hiddenimports += [
+        'h5py.{}'.format(x) for x in ['_proxy', 'utils', 'defs', 'h5ac']
+    ]
+    binaries = [('nanonet*.pyd', '.')]
 
 a = Analysis(['nanonet/nanonetcall.py'],
              pathex=['.'],
