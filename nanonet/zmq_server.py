@@ -3,6 +3,7 @@ import sys
 import os
 import glob
 import platform
+from timeit  import default_timer as now
 import asyncio
 from aiozmq import rpc
 from concurrent.futures import ProcessPoolExecutor as PoolExecutor
@@ -52,10 +53,13 @@ def client(port, files):
     def print_result(f):
         print(f.result())
 
+    t0 = now()
     futures = [client.call.basecall(x) for x in files]
     for future in futures:
         future.add_done_callback(print_result)
     yield from asyncio.gather(*futures)
+    t1 = now()
+    print("Processed {} reads in {}s.".format(len(files), t1 - t0))
 
 
 @asyncio.coroutine
