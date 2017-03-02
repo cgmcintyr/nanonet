@@ -3,6 +3,7 @@ import sys
 import os
 import glob
 import platform
+from multiprocessing import freeze_support
 from timeit  import default_timer as now
 import asyncio
 from aiozmq import rpc
@@ -87,6 +88,7 @@ def main(prog, port, files):
 
 
 if __name__ == '__main__':
+    freeze_support()
     parser = argparse.ArgumentParser('Simple zmq server and client demo.')
     parser.add_argument('program', choices=['server', 'client'], help='Choice of process.')
     parser.add_argument('--port', type=int, default=5555, help='Communication port.')
