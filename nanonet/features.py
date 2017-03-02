@@ -89,14 +89,12 @@ def make_basecall_input_multi(fast5_files, section='template', window=[-1, 0, 1]
     for f in fast5_files:
         with Fast5(f, 'r') as fh:
             if event_detect:
-                # These parameters make no sense to me, but hey-ho
-                # TODO: expose to user
                 events = minknow_event_detect(
                     fh.get_read(raw=True), fh.sample_rate, **ed_params
                 )
             else:
                 events = fh.get_read()
-            events, _ = segment(events, section=section) 
+            events, _ = segment(events, section=section)
         try:
             X = events_to_features(events, window=window, sloika_model=sloika_model)
         except TypeError:
