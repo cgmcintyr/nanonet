@@ -186,7 +186,6 @@ def main():
 
     # run currennt
     print "\n\nRunning currennt with: {}".format(config_name)
-    run_currennt_noisy(config_name, device=args.device)
     try:
         run_currennt_noisy(config_name, device=args.device)
     except KeyboardInterrupt:
