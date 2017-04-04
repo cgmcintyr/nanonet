@@ -1,3 +1,17 @@
+Prerequisites
+=============
+
+In order to effectively train RNNs using `nanonettrain` it is necessary to
+have a recent Nvidia GPU device. Internally at Oxford Nanopore Technologies
+we use Nvidia GTX 1080 cards, as well as Amazon Web Services GPU instances.
+
+The program `nanonettrain` provides an a method for preparing the required
+netCDF input data files to currennt from a variant of the standard .fast5
+HDF files output by Oxford Nanopore Technologies' software. The code has been
+written to be easily modified to read training data from alternative sources.
+**No functionality is provided to create training data, only functionality
+to prepare data for input to currennt.**
+
 Installation
 ============
 
