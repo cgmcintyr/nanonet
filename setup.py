@@ -22,6 +22,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 pkg_name = 'nanonet'
 pkg_path = os.path.join(os.path.dirname(__file__), pkg_name)
 verstrline = open(os.path.join(pkg_path, '__init__.py'), 'r').read()
+pkg_path = os.path.relpath(pkg_name)
 vsre = r"^__version__ = ['\"]([^'\"]*)['\"]"
 mo = re.search(vsre, verstrline, re.M)
 if mo:
